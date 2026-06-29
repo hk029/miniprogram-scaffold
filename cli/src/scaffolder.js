@@ -6,17 +6,6 @@ import path from 'path'
 import { LAYOUTS, SERVERS } from './templates.js'
 
 /**
- * 读取模板文件，替换 {{变量}} 占位符
- */
-function renderTemplate(templatePath, vars) {
-  let content = fs.readFileSync(templatePath, 'utf-8')
-  for (const [key, value] of Object.entries(vars)) {
-    content = content.replaceAll(`{{${key}}}`, value)
-  }
-  return content
-}
-
-/**
  * 生成 app.config.ts
  */
 function generateAppConfig(pages, tabbar) {
@@ -71,14 +60,7 @@ export async function scaffold(projectName, config) {
   const mDir = path.join(dir, 'miniprogram')
   const layoutCfg = LAYOUTS[layout]
   const serverCfg = SERVERS[server]
-  const serverLabel = serverCfg.label
-  const serverExt = server === 'python' ? 'py' : 'go'
-  const startCmd = server === 'python'
-    ? 'pip install -r requirements.txt && python main.py'
-    : 'go mod tidy && go run main.go'
-  const startCmdFull = server === 'python'
-    ? 'cd server && pip install -r requirements.txt && python main.py'
-    : 'cd server && go mod tidy && go run main.go'
+
 
   // 1. 创建目录
   await fs.ensureDir(mDir)
@@ -136,19 +118,10 @@ export async function scaffold(projectName, config) {
   await fs.copy(path.join(repoRoot, 'reusable'), path.join(dir, 'reusable'))
   await fs.copy(path.join(repoRoot, 'docs'), path.join(dir, 'docs'))
 
-  // 8. 从模板生成 CLAUDE.md 和 AGENT.md
+  // 8. 复制 CLAUDE.md / AGENT.md
   const metaDir = path.join(tDir, 'meta')
-  const tplVars = {
-    PROJECT_NAME: projectName,
-    SERVER_LABEL: serverLabel,
-    SERVER_EXT: serverExt,
-    LAYOUT: layout,
-    START_CMD: startCmd,
-    START_CMD_FULL: startCmdFull,
-  }
-  const claudeContent = renderTemplate(path.join(metaDir, 'CLAUDE.md'), tplVars)
-  await fs.writeFile(path.join(dir, 'CLAUDE.md'), claudeContent)
-  await fs.writeFile(path.join(dir, 'AGENT.md'), claudeContent)
+  await fs.copy(path.join(metaDir, 'CLAUDE.md'), path.join(dir, 'CLAUDE.md'))
+  await fs.copy(path.join(metaDir, 'CLAUDE.md'), path.join(dir, 'AGENT.md'))
 
   // 9. 写 README
   await fs.writeFile(path.join(dir, 'README.md'), generateReadme(projectName, layout, server))

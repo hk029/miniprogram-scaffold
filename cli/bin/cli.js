@@ -39289,13 +39289,6 @@ var SERVERS = {
 };
 
 // src/scaffolder.js
-function renderTemplate(templatePath, vars) {
-  let content = import_fs_extra.default.readFileSync(templatePath, "utf-8");
-  for (const [key, value] of Object.entries(vars)) {
-    content = content.replaceAll(`{{${key}}}`, value);
-  }
-  return content;
-}
 function generateAppConfig(pages, tabbar) {
   const pagesStr = pages.map((p) => `    '${p}'`).join(",\n");
   let tabbarStr = "";
@@ -39342,10 +39335,6 @@ async function scaffold(projectName, config) {
   const mDir = import_path.default.join(dir, "miniprogram");
   const layoutCfg = LAYOUTS[layout];
   const serverCfg = SERVERS[server];
-  const serverLabel = serverCfg.label;
-  const serverExt = server === "python" ? "py" : "go";
-  const startCmd = server === "python" ? "pip install -r requirements.txt && python main.py" : "go mod tidy && go run main.go";
-  const startCmdFull = server === "python" ? "cd server && pip install -r requirements.txt && python main.py" : "cd server && go mod tidy && go run main.go";
   await import_fs_extra.default.ensureDir(mDir);
   await import_fs_extra.default.ensureDir(import_path.default.join(dir, "server"));
   await import_fs_extra.default.copy(import_path.default.join(tDir, "miniprogram"), mDir, {
@@ -39385,17 +39374,8 @@ async function scaffold(projectName, config) {
   await import_fs_extra.default.copy(import_path.default.join(repoRoot, "reusable"), import_path.default.join(dir, "reusable"));
   await import_fs_extra.default.copy(import_path.default.join(repoRoot, "docs"), import_path.default.join(dir, "docs"));
   const metaDir = import_path.default.join(tDir, "meta");
-  const tplVars = {
-    PROJECT_NAME: projectName,
-    SERVER_LABEL: serverLabel,
-    SERVER_EXT: serverExt,
-    LAYOUT: layout,
-    START_CMD: startCmd,
-    START_CMD_FULL: startCmdFull
-  };
-  const claudeContent = renderTemplate(import_path.default.join(metaDir, "CLAUDE.md"), tplVars);
-  await import_fs_extra.default.writeFile(import_path.default.join(dir, "CLAUDE.md"), claudeContent);
-  await import_fs_extra.default.writeFile(import_path.default.join(dir, "AGENT.md"), claudeContent);
+  await import_fs_extra.default.copy(import_path.default.join(metaDir, "CLAUDE.md"), import_path.default.join(dir, "CLAUDE.md"));
+  await import_fs_extra.default.copy(import_path.default.join(metaDir, "CLAUDE.md"), import_path.default.join(dir, "AGENT.md"));
   await import_fs_extra.default.writeFile(import_path.default.join(dir, "README.md"), generateReadme(projectName, layout, server));
 }
 

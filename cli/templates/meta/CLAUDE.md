@@ -1,16 +1,16 @@
-# {{PROJECT_NAME}}
+# 项目规范
 
 ## 技术栈
 
 - 前端：Taro 3 + React + TypeScript + Sass
-- 后端：{{SERVER_LABEL}}
-- 布局：{{LAYOUT}}
+- 后端：Go (Fiber) / Python (FastAPI)
 
 ## 常用命令
 
 ```bash
 cd miniprogram && pnpm install && pnpm dev:weapp   # 前端开发
-cd server && {{START_CMD}}                         # 后端开发
+cd server && go mod tidy && go run main.go          # Go 后端
+cd server && pip install -r requirements.txt && python main.py  # Python 后端
 ```
 
 ## 项目规范
@@ -29,7 +29,7 @@ cd server && {{START_CMD}}                         # 后端开发
 │   ├── src/layouts/ # 布局组件
 │   ├── src/pages/   # 页面
 │   └── config/      # 构建配置
-├── server/          # {{SERVER_LABEL}} 后端
+├── server/          # 后端
 ├── reusable/        # 可复用组件和工具
 ├── docs/            # 项目文档
 ├── CLAUDE.md        # AI 协作规范
