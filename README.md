@@ -105,6 +105,49 @@ go run main.go
 - **工具**：subscribeMessage（订阅消息）、obfuscate（混淆）
 - **踩坑文档**：bundle-size / ios-date / wxss-compat / taro-build 等
 
+## Release / 发布
+
+### 流程
+
+1. **改版本号**：修改 `cli/package.json` 中的 `version`
+2. **提交 & 推送**
+3. **打 tag**
+4. **创建 GitHub Release**（触发 npm publish）
+
+### 具体步骤
+
+```bash
+# 1. 修改 cli/package.json 的 version 字段
+# 例如: "version": "1.0.2"
+
+# 2. 提交
+cli/bin/cli.js  # 确认改动
+git add -A
+git commit -m "release: v1.0.2"
+git push origin main
+
+# 3. 打 tag
+git tag -a v1.0.2 -m "v1.0.2"
+git push origin v1.0.2
+
+# 4. 创建 GitHub Release（会自动触发 npm publish）
+gh release create v1.0.2 --title "v1.0.2" --notes "变更说明"
+```
+
+### 注意事项
+
+- **必须先改 `cli/package.json` 的 version**，否则 npm publish 会报 403（版本已存在）
+- **必须创建 GitHub Release**（不是只推 tag），workflow 触发条件是 `release: types: [published]`
+- **tag 名称和 release 标题要一致**，如都用 `v1.0.2`
+- 如果 release 创建失败需要重来：先 `gh release delete v1.0.2 -y` 删旧的，再重新 create
+
+### 自动化
+
+发布由 `.github/workflows/publish.yml` 自动完成：
+- 触发条件：GitHub Release published
+- 构建：`cd cli && npm install && npm publish --provenance --access public`
+- 需要在 repo Settings → Secrets 中配置 `NPM_TOKEN`
+
 ## License
 
 MIT
