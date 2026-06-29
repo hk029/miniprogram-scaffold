@@ -75,8 +75,8 @@ my-app/
 
 ```bash
 # 克隆仓库
-git clone https://github.com/YOUR_USERNAME/mini-scaffold.git
-cd mini-scaffold
+git clone git@github.com:hk029/miniprogram-scaffold.git
+cd miniprogram-scaffold
 
 # 安装依赖
 cd cli && npm install
