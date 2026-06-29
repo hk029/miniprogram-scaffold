@@ -39328,6 +39328,109 @@ cd server && ${startCmd}
 \`\`\`
 `;
 }
+function generateClaudeMd(name, config) {
+  const { layout, server, port } = config;
+  const serverLabel = SERVERS[server].label;
+  const startCmd = server === "python" ? "pip install -r requirements.txt && python main.py" : "go mod tidy && go run main.go";
+  return `# ${name}
+
+## Tech Stack
+
+- Frontend: Taro 3 + React + TypeScript + Sass
+- Backend: ${serverLabel}
+- Layout: ${layout}
+
+## Commands
+
+\`\`\`bash
+cd miniprogram && pnpm install && pnpm dev:weapp   # \u524D\u7AEF\u5F00\u53D1
+cd server && ${startCmd}                           # \u540E\u7AEF\u5F00\u53D1
+\`\`\`
+
+## Conventions
+
+- CSS \u5B57\u53F7\u7528\u53D8\u91CF \`var(--fs-xxl)\`\uFF0C\u7981\u6B62\u5199\u6B7B px
+- \u7C7B\u540D BEM\uFF1A\`.block__element--modifier\`
+- API \u8FD4\u56DE \`{ code: 0, message, data, pagination? }\`
+- \u7EAF\u5C55\u793A\u7EC4\u4EF6\u7528 \`memo()\` \u5305\u88F9
+- PNG only\uFF0C\u4E0D\u7528 SVG
+- \`<Image>\` \u5BB9\u5668\u5FC5\u987B\u6709\u663E\u5F0F width/height
+
+## Project Structure
+
+\`\`\`
+\u251C\u2500\u2500 miniprogram/     # Taro \u524D\u7AEF
+\u2502   \u251C\u2500\u2500 src/layouts/ # \u5E03\u5C40\u7EC4\u4EF6
+\u2502   \u251C\u2500\u2500 src/pages/   # \u9875\u9762
+\u2502   \u2514\u2500\u2500 config/      # \u6784\u5EFA\u914D\u7F6E
+\u251C\u2500\u2500 server/          # ${serverLabel} \u540E\u7AEF
+\u251C\u2500\u2500 reusable/        # \u53EF\u590D\u7528\u7EC4\u4EF6\u548C\u5DE5\u5177
+\u251C\u2500\u2500 docs/            # \u9879\u76EE\u6587\u6863
+\u251C\u2500\u2500 CLAUDE.md        # AI \u534F\u4F5C\u89C4\u8303
+\u2514\u2500\u2500 AGENT.md         # Agent \u4F7F\u7528\u6307\u5357
+\`\`\`
+
+## Notes
+
+- \u90E8\u7F72\u524D\u786E\u8BA4\u7528\u6237\u610F\u56FE\uFF0C\u4E0D\u8981\u4E3B\u52A8 deploy
+- \u4E0D\u8981\u624B\u52A8 push \u5230 main
+- \u53EA\u8DD1 build \u9A8C\u8BC1\u7F16\u8BD1\uFF0C\u4E0D\u8981\u8D77\u670D\u52A1
+`;
+}
+function generateAgentMd(name, config) {
+  const { server } = config;
+  const serverLabel = SERVERS[server].label;
+  const startCmd = server === "python" ? "cd server && pip install -r requirements.txt && python main.py" : "cd server && go mod tidy && go run main.go";
+  return `# Agent \u4F7F\u7528\u6307\u5357
+
+> \u672C\u6587\u4EF6\u4F9B AI Agent \u9605\u8BFB\uFF0C\u8BF4\u660E\u5982\u4F55\u5728\u8FD9\u4E2A\u9879\u76EE\u4E2D\u5DE5\u4F5C\u3002
+
+## \u5FEB\u901F\u5F00\u59CB
+
+\`\`\`bash
+cd miniprogram && pnpm install && pnpm dev:weapp
+${startCmd}
+\`\`\`
+
+## \u5F00\u53D1\u6D41\u7A0B
+
+1. **\u7406\u89E3\u9700\u6C42** \u2192 \u8BFB CLAUDE.md \u4E86\u89E3\u89C4\u8303
+2. **\u5B9A\u4F4D\u4EE3\u7801** \u2192 \u9875\u9762\u5728 \`src/pages/\`\uFF0C\u5E03\u5C40\u5728 \`src/layouts/\`
+3. **\u4FEE\u6539\u4EE3\u7801** \u2192 \u9075\u5FAA BEM\u3001CSS \u53D8\u91CF\u3001memo \u7B49\u89C4\u8303
+4. **\u9A8C\u8BC1** \u2192 \u8DD1 \`pnpm build:weapp\` \u786E\u8BA4\u7F16\u8BD1\u901A\u8FC7
+5. **\u4E0D\u8981\u4E3B\u52A8\u90E8\u7F72** \u2192 \u7B49\u7528\u6237\u786E\u8BA4
+
+## \u5173\u952E\u8DEF\u5F84
+
+| \u5185\u5BB9 | \u8DEF\u5F84 |
+|------|------|
+| \u9875\u9762 | \`miniprogram/src/pages/\` |
+| \u5E03\u5C40 | \`miniprogram/src/layouts/\` |
+| \u6837\u5F0F\u53D8\u91CF | \`miniprogram/src/styles/variables.scss\` |
+| \u540E\u7AEF\u5165\u53E3 | \`server/main.${server === "python" ? "py" : "go"}\` |
+| \u9879\u76EE\u89C4\u8303 | \`CLAUDE.md\` |
+| \u8BBE\u8BA1\u7CFB\u7EDF | \`docs/design-tokens.md\` |
+| API \u7EA6\u5B9A | \`docs/api-conventions.md\` |
+| \u53EF\u590D\u7528\u7EC4\u4EF6 | \`reusable/components/\` |
+| \u8E29\u5751\u6587\u6863 | \`reusable/patterns/\` |
+
+## \u7981\u5FCC
+
+- \u4E0D\u8981\u5199\u6B7B px \u5B57\u53F7
+- \u4E0D\u8981\u7528 SVG \u505A\u5C0F\u7A0B\u5E8F\u56FE\u6807
+- \u4E0D\u8981\u624B\u5199 \`wx.requestSubscribeMessage\`
+- \u4E0D\u8981\u76F4\u63A5\u64CD\u4F5C\u6570\u636E\u5E93
+- \u4E0D\u8981\u4E3B\u52A8 deploy
+- \u4E0D\u8981 push \u5230 main\uFF08\u9664\u975E\u7528\u6237\u660E\u786E\u8981\u6C42\uFF09
+
+## \u6587\u4EF6\u53D8\u66F4\u68C0\u67E5\u6E05\u5355
+
+- \u6539\u4E86\u9875\u9762 \u2192 \u68C0\u67E5 \`app.config.ts\` \u7684 pages \u662F\u5426\u9700\u8981\u66F4\u65B0
+- \u6539\u4E86\u7EC4\u4EF6 \u2192 \u68C0\u67E5\u662F\u5426\u9700\u8981 \`memo()\`
+- \u6539\u4E86\u6837\u5F0F \u2192 \u68C0\u67E5\u662F\u5426\u7528\u4E86 CSS \u53D8\u91CF
+- \u65B0\u589E\u4F9D\u8D56 \u2192 \u786E\u8BA4\u662F\u5C0F\u7A0B\u5E8F\u517C\u5BB9\u7684\u5305
+`;
+}
 async function scaffold(projectName, config) {
   const { layout, server, port } = config;
   const tDir = import_path.default.join(__dirname, "..", "templates");
@@ -39357,6 +39460,11 @@ async function scaffold(projectName, config) {
   pc.projectname = projectName;
   await import_fs_extra.default.writeJson(import_path.default.join(mDir, "project.config.json"), pc, { spaces: 2 });
   await import_fs_extra.default.copy(import_path.default.join(tDir, serverCfg.template), import_path.default.join(dir, "server"));
+  const repoRoot = import_path.default.join(tDir, "..", "..");
+  await import_fs_extra.default.copy(import_path.default.join(repoRoot, "reusable"), import_path.default.join(dir, "reusable"));
+  await import_fs_extra.default.copy(import_path.default.join(repoRoot, "docs"), import_path.default.join(dir, "docs"));
+  await import_fs_extra.default.writeFile(import_path.default.join(dir, "CLAUDE.md"), generateClaudeMd(projectName, config));
+  await import_fs_extra.default.writeFile(import_path.default.join(dir, "AGENT.md"), generateAgentMd(projectName, config));
   if (server === "go") {
     const goModPath = import_path.default.join(dir, "server/go.mod");
     let goMod = await import_fs_extra.default.readFile(goModPath, "utf8");
