@@ -1,315 +1,69 @@
 #!/usr/bin/env node
-
 const { Command } = require('commander');
 const inquirer = require('inquirer');
 const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
-
 const program = new Command();
-
-program
-  .name('create-mini-scaffold')
-  .description('Create Taro + Go mini program projects')
-  .version('1.0.0')
-  .argument('[project-name]', 'Project name')
-  .option('-f, --framework <framework>', 'Framework to use (React/Vue)', 'React')
-  .option('-c, --css <preprocessor>', 'CSS preprocessor (Sass/Less/Stylus/None)', 'Sass')
-  .option('-p, --port <port>', 'Server port', '8080')
-  .option('-y, --yes', 'Skip prompts and use defaults')
-  .option('--overwrite', 'Overwrite existing directory')
-  .action(async (projectName, options) => {
+program.name('create-mini-scaffold').description('Create Taro + Go mini program projects').version('1.0.0')
+  .argument('[project-name]').option('-f, --framework <f>', 'Framework', 'React').option('-c, --css <css>', 'CSS preprocessor', 'Sass')
+  .option('-l, --layout <l>', 'Layout: header-tabbar | tabbar | fullscreen | all', 'header-tabbar')
+  .option('-p, --port <port>', 'Server port', '8080').option('-y, --yes', 'Skip prompts').option('--overwrite')
+  .action(async (name, opts) => {
     try {
-      // If project name not provided, ask for it
-      if (!projectName) {
-        if (options.yes) {
-          projectName = 'my-mini-app';
-        } else {
-          const answers = await inquirer.prompt([
-            {
-              type: 'input',
-              name: 'projectName',
-              message: 'What is your project name?',
-              default: 'my-mini-app'
-            }
-          ]);
-          projectName = answers.projectName;
-        }
+      if (!name) { if (opts.yes) name = 'my-mini-app'; else { const a = await inquirer.prompt([{ type: 'input', name: 'n', message: 'Project name?', default: 'my-mini-app' }]); name = a.n; } }
+      if (!/^[a-zA-Z0-9-_]+$/.test(name)) { console.error(chalk.red('Invalid name')); process.exit(1); }
+      const dir = path.join(process.cwd(), name);
+      if (await fs.pathExists(dir)) { if (!opts.overwrite) { if (opts.yes) { console.error(chalk.red('Exists. Use --overwrite.')); process.exit(1); } const { o } = await inquirer.prompt([{ type: 'confirm', name: 'o', message: 'Overwrite?', default: false }]); if (!o) { process.exit(0); } } await fs.remove(dir); }
+      const cfg = { framework: opts.framework, css: opts.css, layout: opts.layout, port: opts.port };
+      if (!opts.yes) { const a = await inquirer.prompt([
+        { type: 'list', name: 'framework', message: 'Framework?', choices: ['React', 'Vue'] },
+        { type: 'list', name: 'css', message: 'CSS?', choices: ['Sass', 'Less', 'Stylus', 'None'] },
+        { type: 'list', name: 'layout', message: 'Layout?', choices: [
+          { name: 'header-tabbar  - 自定义 Header + 原生 TabBar', value: 'header-tabbar' },
+          { name: 'tabbar         - 原生导航栏 + 原生 TabBar', value: 'tabbar' },
+          { name: 'fullscreen     - 全屏沉浸式', value: 'fullscreen' },
+          { name: 'all            - 全部布局（推荐）', value: 'all' }
+        ]}, { type: 'input', name: 'port', message: 'Port?', default: cfg.port } ]); Object.assign(cfg, a); }
+      if (!['header-tabbar','tabbar','fullscreen','all'].includes(cfg.layout)) { console.error(chalk.red('Invalid layout')); process.exit(1); }
+      console.log(chalk.blue('\nCreating...'));
+      const tDir = path.join(__dirname, '..', '..', 'templates');
+      const mDir = path.join(dir, 'miniprogram');
+      await fs.ensureDir(mDir); await fs.ensureDir(path.join(dir, 'server'));
+      // Copy miniprogram (skip pages)
+      await fs.copy(path.join(tDir, 'miniprogram'), mDir, { filter: s => !path.relative(path.join(tDir, 'miniprogram'), s).startsWith('src/pages') });
+      await fs.copy(path.join(tDir, 'miniprogram/src/layouts'), path.join(mDir, 'src/layouts'));
+      // Copy pages based on layout
+      const sP = path.join(tDir, 'miniprogram/src/pages'), dP = path.join(mDir, 'src/pages');
+      let pages = [], tabbar = [];
+      if (cfg.layout === 'all') {
+        pages = ['pages/home/index','pages/discover/index','pages/mine/index','pages/splash/index'];
+        tabbar = [{ pagePath:'pages/home/index',text:'首页',iconPath:'assets/tabbar/home.png',selectedIconPath:'assets/tabbar/home-active.png' },{ pagePath:'pages/discover/index',text:'发现',iconPath:'assets/tabbar/discover.png',selectedIconPath:'assets/tabbar/discover-active.png' },{ pagePath:'pages/mine/index',text:'我的',iconPath:'assets/tabbar/mine.png',selectedIconPath:'assets/tabbar/mine-active.png' }];
+        for (const p of ['home','discover','mine','splash']) await fs.copy(path.join(sP, p), path.join(dP, p));
+      } else if (cfg.layout === 'header-tabbar') {
+        pages = ['pages/home/index']; tabbar = [{ pagePath:'pages/home/index',text:'首页',iconPath:'assets/tabbar/home.png',selectedIconPath:'assets/tabbar/home-active.png' }];
+        await fs.copy(path.join(sP, 'home'), path.join(dP, 'home'));
+      } else if (cfg.layout === 'tabbar') {
+        pages = ['pages/discover/index']; tabbar = [{ pagePath:'pages/discover/index',text:'发现',iconPath:'assets/tabbar/discover.png',selectedIconPath:'assets/tabbar/discover-active.png' }];
+        await fs.copy(path.join(sP, 'discover'), path.join(dP, 'discover'));
+      } else {
+        pages = ['pages/splash/index']; await fs.copy(path.join(sP, 'splash'), path.join(dP, 'splash'));
       }
-
-      // Validate project name
-      if (!/^[a-zA-Z0-9-_]+$/.test(projectName)) {
-        console.error(chalk.red('Error: Project name can only contain letters, numbers, hyphens, and underscores'));
-        process.exit(1);
-      }
-
-      const targetDir = path.join(process.cwd(), projectName);
-      
-      // Check if directory already exists
-      if (await fs.pathExists(targetDir)) {
-        if (!options.overwrite) {
-          if (options.yes) {
-            console.error(chalk.red(`Directory ${projectName} already exists. Use --overwrite to overwrite.`));
-            process.exit(1);
-          }
-          
-          const { overwrite } = await inquirer.prompt([
-            {
-              type: 'confirm',
-              name: 'overwrite',
-              message: `Directory ${projectName} already exists. Overwrite?`,
-              default: false
-            }
-          ]);
-          
-          if (!overwrite) {
-            console.log(chalk.yellow('Operation cancelled'));
-            process.exit(0);
-          }
-        }
-        
-        await fs.remove(targetDir);
-      }
-
-      // Configuration
-      const config = {
-        framework: options.framework,
-        cssPreprocessor: options.css,
-        serverPort: options.port
-      };
-
-      // Ask for configuration options if not using --yes
-      if (!options.yes) {
-        const answers = await inquirer.prompt([
-          {
-            type: 'list',
-            name: 'framework',
-            message: 'Which framework do you want to use?',
-            choices: ['React', 'Vue'],
-            default: config.framework
-          },
-          {
-            type: 'list',
-            name: 'cssPreprocessor',
-            message: 'Which CSS preprocessor do you want to use?',
-            choices: ['Sass', 'Less', 'Stylus', 'None'],
-            default: config.cssPreprocessor
-          },
-          {
-            type: 'input',
-            name: 'serverPort',
-            message: 'What port should the Go server run on?',
-            default: config.serverPort
-          }
-        ]);
-        
-        config.framework = answers.framework;
-        config.cssPreprocessor = answers.cssPreprocessor;
-        config.serverPort = answers.serverPort;
-      }
-
-      console.log(chalk.blue('\nCreating project...'));
-      
-      // Copy templates
-      await copyTemplates(projectName, config);
-      
-      console.log(chalk.green('\n✓ Project created successfully!'));
-      console.log(chalk.cyan('\nNext steps:'));
-      console.log(chalk.white(`  cd ${projectName}`));
-      console.log(chalk.white('  # Start frontend:'));
-      console.log(chalk.white('  cd miniprogram && npm install && npm run dev:weapp'));
-      console.log(chalk.white('  # Start backend:'));
-      console.log(chalk.white('  cd server && go run main.go'));
-      
-    } catch (error) {
-      console.error(chalk.red('Error creating project:'), error);
-      process.exit(1);
-    }
+      // Generate app.config.ts
+      const ps = pages.map(p => `    '${p}'`).join(',\n');
+      let ts = ''; if (tabbar.length) { const tl = tabbar.map(t => `      { ${Object.entries(t).map(([k,v])=>`${k}: '${v}'`).join(', ')} }`).join(',\n'); ts = `\n  tabBar: {\n    color: '#999999', selectedColor: '#1890ff', backgroundColor: '#ffffff', borderStyle: 'black',\n    list: [\n${tl},\n    ],\n  },`; }
+      await fs.writeFile(path.join(mDir, 'src/app.config.ts'), `export default defineAppConfig({\n  pages: [\n${ps},\n  ],${ts}\n  window: { backgroundTextStyle: 'light', navigationBarBackgroundColor: '#ffffff', navigationBarTitleText: 'Mini Scaffold', navigationBarTextStyle: 'black' },\n})\n`);
+      // Update names
+      const pj = await fs.readJson(path.join(mDir, 'package.json')); pj.name = name + '-miniprogram'; await fs.writeJson(path.join(mDir, 'package.json'), pj, { spaces: 2 });
+      const pc = await fs.readJson(path.join(mDir, 'project.config.json')); pc.projectname = name; await fs.writeJson(path.join(mDir, 'project.config.json'), pc, { spaces: 2 });
+      // Server
+      await fs.copy(path.join(tDir, 'server'), path.join(dir, 'server'));
+      let gm = await fs.readFile(path.join(dir, 'server/go.mod'), 'utf8'); await fs.writeFile(path.join(dir, 'server/go.mod'), gm.replace('module mini-scaffold-server', `module ${name}-server`));
+      const ep = path.join(dir, 'server/.env.example'); if (await fs.pathExists(ep)) { let e = await fs.readFile(ep, 'utf8'); e = e.replace('PORT=8080', `PORT=${cfg.port}`); await fs.writeFile(path.join(dir, 'server/.env'), e); await fs.writeFile(ep, e); }
+      // README
+      const nm = { 'header-tabbar': 'HeaderTabBarLayout', 'tabbar': 'TabBarLayout', 'fullscreen': 'FullscreenLayout', 'all': '全部布局' };
+      await fs.writeFile(path.join(dir, 'README.md'), `# ${name}\n\nTaro + Go 小程序。\n\nLayout: \`${cfg.layout}\` — ${nm[cfg.layout]}\n\n## Start\n\n\`\`\`bash\ncd miniprogram && npm install && npm run dev:weapp\ncd server && go mod tidy && go run main.go\n\`\`\`\n`);
+      console.log(chalk.green('\n✓ Done!')); console.log(chalk.cyan(`  Layout: ${cfg.layout}`)); console.log(chalk.white(`\n  cd ${name} && cd miniprogram && npm install && npm run dev:weapp`));
+    } catch (e) { console.error(chalk.red('Error:'), e); process.exit(1); }
   });
-
-async function copyTemplates(projectName, config) {
-  const targetDir = path.join(process.cwd(), projectName);
-  const templateDir = path.join(__dirname, '..', '..', 'templates');
-  
-  // Create project structure
-  await fs.ensureDir(path.join(targetDir, 'miniprogram'));
-  await fs.ensureDir(path.join(targetDir, 'server'));
-  
-  // Copy miniprogram template
-  await copyMiniprogramTemplate(targetDir, config);
-  
-  // Copy server template
-  await copyServerTemplate(targetDir, config);
-  
-  // Create root README
-  await createRootReadme(targetDir, projectName, config);
-}
-
-async function copyMiniprogramTemplate(targetDir, config) {
-  const templateDir = path.join(__dirname, '..', '..', 'templates', 'miniprogram');
-  const targetMiniprogramDir = path.join(targetDir, 'miniprogram');
-  
-  // Copy all template files
-  await fs.copy(templateDir, targetMiniprogramDir);
-  
-  // Update package.json with correct name
-  const packageJsonPath = path.join(targetMiniprogramDir, 'package.json');
-  const packageJson = await fs.readJson(packageJsonPath);
-  packageJson.name = path.basename(targetDir) + '-miniprogram';
-  await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
-  
-  // Update project.config.json
-  const projectConfigPath = path.join(targetMiniprogramDir, 'project.config.json');
-  const projectConfig = await fs.readJson(projectConfigPath);
-  projectConfig.projectname = path.basename(targetDir);
-  await fs.writeJson(projectConfigPath, projectConfig, { spaces: 2 });
-}
-
-async function copyServerTemplate(targetDir, config) {
-  const templateDir = path.join(__dirname, '..', '..', 'templates', 'server');
-  const targetServerDir = path.join(targetDir, 'server');
-  
-  // Copy all template files
-  await fs.copy(templateDir, targetServerDir);
-  
-  // Update go.mod with correct module name
-  const goModPath = path.join(targetServerDir, 'go.mod');
-  let goModContent = await fs.readFile(goModPath, 'utf8');
-  goModContent = goModContent.replace('module mini-scaffold-server', `module ${path.basename(targetDir)}-server`);
-  await fs.writeFile(goModPath, goModContent);
-  
-  // Update .env with correct port
-  const envPath = path.join(targetServerDir, '.env');
-  let envContent = await fs.readFile(envPath, 'utf8');
-  envContent = envContent.replace('PORT=8080', `PORT=${config.serverPort}`);
-  await fs.writeFile(envPath, envContent);
-  
-  // Update .env.example with correct port
-  const envExamplePath = path.join(targetServerDir, '.env.example');
-  let envExampleContent = await fs.readFile(envExamplePath, 'utf8');
-  envExampleContent = envExampleContent.replace('PORT=8080', `PORT=${config.serverPort}`);
-  await fs.writeFile(envExamplePath, envExampleContent);
-}
-
-async function createRootReadme(targetDir, projectName, config) {
-  const readmeContent = `# ${projectName}
-
-A mini program built with Taro (frontend) and Go (backend).
-
-## Project Structure
-
-\`\`\`
-${projectName}/
-├── miniprogram/     # Taro frontend
-│   ├── src/         # Source code
-│   ├── config/      # Taro config
-│   └── package.json
-├── server/          # Go backend
-│   ├── main.go      # Entry point
-│   ├── handler/     # HTTP handlers
-│   ├── go.mod       # Go module
-│   └── go.sum       # Go dependencies
-└── README.md
-\`\`\`
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js >= 16
-- Go >= 1.21
-- WeChat Developer Tools
-
-### Frontend (Taro)
-
-1. Install dependencies:
-   \`\`\`bash
-   cd miniprogram
-   npm install
-   \`\`\`
-
-2. Start development server:
-   \`\`\`bash
-   npm run dev:weapp
-   \`\`\`
-
-3. Open WeChat Developer Tools and import the \`miniprogram\` directory.
-
-### Backend (Go)
-
-1. Install dependencies:
-   \`\`\`bash
-   cd server
-   go mod tidy
-   \`\`\`
-
-2. Start the server:
-   \`\`\`bash
-   go run main.go
-   \`\`\`
-
-The server will run on port ${config.serverPort}.
-
-## API Endpoints
-
-- \`GET /api/hello\` - Returns a hello world message
-
-## Development
-
-### Frontend Development
-
-The frontend is built with Taro and React. Key files:
-
-- \`src/app.tsx\` - App entry point
-- \`src/pages/index/index.tsx\` - Main page
-- \`config/index.ts\` - Taro configuration
-
-### Backend Development
-
-The backend is built with Go and Fiber. Key files:
-
-- \`main.go\` - Server entry point
-- \`handler/hello.go\` - Hello world handler
-- \`router/router.go\` - Route definitions
-
-## Building for Production
-
-### Frontend
-
-\`\`\`bash
-cd miniprogram
-npm run build:weapp
-\`\`\`
-
-### Backend
-
-\`\`\`bash
-cd server
-go build -o server main.go
-./server
-\`\`\`
-
-## Configuration
-
-### Frontend Configuration
-
-Edit \`miniprogram/config/index.ts\` to configure Taro settings.
-
-### Backend Configuration
-
-Edit \`server/.env\` to configure server settings:
-
-\`\`\`env
-PORT=8080
-GIN_MODE=release
-\`\`\`
-
-## License
-
-MIT
-`;
-
-  await fs.writeFile(path.join(targetDir, 'README.md'), readmeContent);
-}
-
 program.parse();

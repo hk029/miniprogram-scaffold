@@ -1,0 +1,11 @@
+@import '../../styles/variables.scss';
+.splash { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  &__content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: $spacing-xl; }
+  &__logo { width: 160rpx; height: 160rpx; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; margin-bottom: $spacing-xl; }
+  &__logo-text { font-size: 56rpx; font-weight: 800; color: #fff; }
+  &__title { display: block; font-size: var(--fs-hero); font-weight: 800; color: #fff; margin-bottom: $spacing-md; }
+  &__subtitle { display: block; font-size: var(--fs-base); color: rgba(255,255,255,0.8); margin-bottom: 48px; }
+  &__btn { width: 400rpx; height: 96rpx; border-radius: 48rpx; background: #fff; display: flex; align-items: center; justify-content: center; }
+  &__btn-text { font-size: var(--fs-lg); font-weight: 600; color: #667eea; }
+  &__footer { padding-bottom: 80rpx; }
+  &__footer-text { font-size: var(--fs-xs); color: rgba(255,255,255,0.5); } }
