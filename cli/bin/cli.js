@@ -39375,7 +39375,7 @@ async function scaffold(projectName, config) {
   await import_fs_extra.default.copy(import_path.default.join(repoRoot, "docs"), import_path.default.join(dir, "docs"));
   const metaDir = import_path.default.join(tDir, "meta");
   await import_fs_extra.default.copy(import_path.default.join(metaDir, "CLAUDE.md"), import_path.default.join(dir, "CLAUDE.md"));
-  await import_fs_extra.default.copy(import_path.default.join(metaDir, "CLAUDE.md"), import_path.default.join(dir, "AGENT.md"));
+  await import_fs_extra.default.copy(import_path.default.join(metaDir, "CLAUDE.md"), import_path.default.join(dir, "AGENTS.md"));
   await import_fs_extra.default.writeFile(import_path.default.join(dir, "README.md"), generateReadme(projectName, layout, server));
 }
 

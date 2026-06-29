@@ -121,7 +121,7 @@ export async function scaffold(projectName, config) {
   // 8. 复制 CLAUDE.md / AGENT.md
   const metaDir = path.join(tDir, 'meta')
   await fs.copy(path.join(metaDir, 'CLAUDE.md'), path.join(dir, 'CLAUDE.md'))
-  await fs.copy(path.join(metaDir, 'CLAUDE.md'), path.join(dir, 'AGENT.md'))
+  await fs.copy(path.join(metaDir, 'CLAUDE.md'), path.join(dir, 'AGENTS.md'))
 
   // 9. 写 README
   await fs.writeFile(path.join(dir, 'README.md'), generateReadme(projectName, layout, server))

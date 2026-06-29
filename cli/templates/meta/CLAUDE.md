@@ -33,7 +33,7 @@ cd server && pip install -r requirements.txt && python main.py  # Python 后端
 ├── reusable/        # 可复用组件和工具
 ├── docs/            # 项目文档
 ├── CLAUDE.md        # AI 协作规范
-└── AGENT.md         # Agent 使用指南
+└── AGENTS.md        # Agent 使用指南
 ```
 
 ## 可复用资产
