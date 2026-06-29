@@ -1,26 +1,30 @@
 {
   "name": "create-miniprogram-scaffold",
-  "version": "1.0.4",
-  "description": "Create Taro + Go mini program projects",
+  "version": "1.0.5",
+  "description": "Create Taro + Go/Python mini program projects",
   "repository": {
     "type": "git",
     "url": "https://github.com/hk029/miniprogram-scaffold.git"
   },
-  "main": "index.js",
+
   "files": ["bin", "templates"],
   "bin": {
     "create-miniprogram-scaffold": "./bin/cli.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "esbuild src/index.js --bundle --platform=node --format=cjs --outfile=bin/cli.js",
+    "dev": "esbuild src/index.js --bundle --platform=node --format=cjs --outfile=bin/cli.js --watch"
   },
-  "keywords": ["scaffold", "taro", "go", "mini-program"],
+  "keywords": ["scaffold", "taro", "go", "python", "mini-program"],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^4.1.2",
     "commander": "^11.0.0",
-    "inquirer": "^8.2.0",
     "fs-extra": "^11.1.0",
-    "chalk": "^4.1.2"
+    "inquirer": "^8.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.0"
   }
 }
