@@ -1,0 +1,16 @@
+.global-fab {
+  position: fixed;
+  bottom: 100rpx;
+  right: 24rpx;
+  width: 100rpx;
+  height: 100rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+
+  &-icon {
+    width: 100rpx;
+    height: 100rpx;
+  }
+}

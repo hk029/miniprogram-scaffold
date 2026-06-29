@@ -1,0 +1,65 @@
+.page-header {
+  position: relative;
+  z-index: 10;
+
+  &__content {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 0 32px 16px;
+  }
+
+  &__back-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  &__copy {
+    display: block;
+    // 固定高度，保证有/无 description 时标题 baseline 始终在同一位置
+    height: 89px;
+  }
+
+  &__back {
+    width: 56px;
+    height: 56px;
+    flex: 0 0 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.56);
+    box-shadow: 0 2px 8px rgba(23, 52, 92, 0.08);
+  }
+
+  &__back-text {
+    color: #174A9C;
+    font-size: var(--fs-hero);
+    line-height: 1;
+    font-weight: 600;
+  }
+
+  &__copy {
+    display: block;
+  }
+
+  &__title {
+    display: block;
+    color: #123c73;
+    font-size: var(--fs-hero);
+    font-weight: 800;
+    line-height: 1.18;
+    text-align: left;
+  }
+
+  &__description {
+    display: block;
+    margin-top: 8px;
+    color: rgba(23, 52, 92, 0.82);
+    font-size: var(--fs-sm);
+    line-height: 1.4;
+    font-weight: 500;
+    text-align: left;
+  }
+}

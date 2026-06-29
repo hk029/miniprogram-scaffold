@@ -1,0 +1,32 @@
+.detail-card {
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  box-shadow: 0 10px 24px rgba(46, 101, 157, 0.1);
+  margin: 0 16px 12px;
+  overflow: hidden;
+  position: relative;
+
+  &__title {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid #f0f1f5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__title-text {
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: #174A9C;
+  }
+
+  &__title-tag {
+    font-size: var(--fs-xxs);
+    color: #95a5a6;
+  }
+
+  &__body {
+    padding: 16px;
+  }
+}
