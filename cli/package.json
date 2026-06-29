@@ -1,12 +1,13 @@
 {
   "name": "create-miniprogram-scaffold",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Create Taro + Go mini program projects",
   "repository": {
     "type": "git",
     "url": "https://github.com/hk029/miniprogram-scaffold.git"
   },
   "main": "index.js",
+  "files": ["bin", "templates"],
   "bin": {
     "create-miniprogram-scaffold": "./bin/cli.js"
   },

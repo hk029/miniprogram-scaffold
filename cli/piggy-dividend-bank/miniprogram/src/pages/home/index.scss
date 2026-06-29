@@ -1,0 +1,6 @@
+@import '../../styles/variables.scss';
+.home { flex: 1;
+  &__card { background: $bg-color-white; border-radius: $border-radius-lg; padding: $spacing-xl; box-shadow: $shadow-base; }
+  &__card-title { display: block; font-size: var(--fs-lg); font-weight: 700; color: $text-color; margin-bottom: $spacing-md; padding-bottom: $spacing-md; border-bottom: 1px solid $border-color-light; }
+  &__card-body { display: block; font-size: var(--fs-base); color: $text-color-secondary; margin-bottom: $spacing-xl; text-align: center; padding: $spacing-xl 0; }
+  &__btn { width: 100%; height: 80rpx; line-height: 80rpx; background: $primary-color; color: $text-color-inverse; font-size: var(--fs-base); border-radius: $border-radius-base; border: none; } }

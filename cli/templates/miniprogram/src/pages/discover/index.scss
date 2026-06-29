@@ -1,0 +1,4 @@
+@import '../../styles/variables.scss';
+.discover { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: $spacing-xl;
+  &__title { display: block; font-size: var(--fs-xxl); font-weight: 700; color: $text-color; margin-bottom: $spacing-md; }
+  &__desc { display: block; font-size: var(--fs-sm); color: $text-color-secondary; } }

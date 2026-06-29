@@ -27,7 +27,7 @@ program.name('create-mini-scaffold').description('Create Taro + Go mini program 
         ]}, { type: 'input', name: 'port', message: 'Port?', default: cfg.port } ]); Object.assign(cfg, a); }
       if (!['header-tabbar','tabbar','fullscreen','all'].includes(cfg.layout)) { console.error(chalk.red('Invalid layout')); process.exit(1); }
       console.log(chalk.blue('\nCreating...'));
-      const tDir = path.join(__dirname, '..', '..', 'templates');
+      const tDir = path.join(__dirname, '..', 'templates');
       const mDir = path.join(dir, 'miniprogram');
       await fs.ensureDir(mDir); await fs.ensureDir(path.join(dir, 'server'));
       // Copy miniprogram (skip pages)

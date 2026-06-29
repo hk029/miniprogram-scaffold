@@ -1,0 +1,11 @@
+@import '../../styles/variables.scss';
+.header-tabbar-layout { width: 100%; min-height: 100vh; display: flex; flex-direction: column; background-color: $bg-color;
+  &__header { position: sticky; top: 0; z-index: 100; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 0 0 $border-radius-lg $border-radius-lg; overflow: hidden; }
+  &__header-content { display: flex; align-items: center; justify-content: space-between; padding: $spacing-md $spacing-lg; }
+  &__title-area { flex: 1; min-width: 0; }
+  &__title { display: block; font-size: var(--fs-xxl); font-weight: 800; color: $text-color-inverse; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &__subtitle { display: block; margin-top: $spacing-xs; font-size: var(--fs-sm); color: rgba(255,255,255,0.8); }
+  &__action { flex-shrink: 0; margin-left: $spacing-md; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; }
+  &__search { padding: 0 $spacing-lg $spacing-md; }
+  &__search-input { width: 100%; height: 64rpx; padding: 0 $spacing-lg; background: rgba(255,255,255,0.9); border-radius: 32rpx; font-size: var(--fs-sm); color: $text-color; }
+  &__body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: $spacing-lg; } }
