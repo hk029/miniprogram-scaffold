@@ -1,6 +1,6 @@
 {
   "name": "create-miniprogram-scaffold",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Create Taro + Go mini program projects",
   "repository": {
     "type": "git",
