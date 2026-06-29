@@ -6,7 +6,18 @@ import path from 'path'
 import { LAYOUTS, SERVERS } from './templates.js'
 
 /**
- * 生成 app.config.ts 内容
+ * 读取模板文件，替换 {{变量}} 占位符
+ */
+function renderTemplate(templatePath, vars) {
+  let content = fs.readFileSync(templatePath, 'utf-8')
+  for (const [key, value] of Object.entries(vars)) {
+    content = content.replaceAll(`{{${key}}}`, value)
+  }
+  return content
+}
+
+/**
+ * 生成 app.config.ts
  */
 function generateAppConfig(pages, tabbar) {
   const pagesStr = pages.map(p => `    '${p}'`).join(',\n')
@@ -26,7 +37,7 @@ ${pagesStr},
 }
 
 /**
- * 生成 README 内容
+ * 生成 README
  */
 function generateReadme(name, layout, serverType) {
   const layoutLabel = LAYOUTS[layout].label
@@ -51,123 +62,6 @@ cd server && ${startCmd}
 }
 
 /**
- * 生成 CLAUDE.md
- */
-function generateClaudeMd(name, config) {
-  const { layout, server, port } = config
-  const serverLabel = SERVERS[server].label
-  const startCmd = server === 'python'
-    ? 'pip install -r requirements.txt && python main.py'
-    : 'go mod tidy && go run main.go'
-
-  return `# ${name}
-
-## Tech Stack
-
-- Frontend: Taro 3 + React + TypeScript + Sass
-- Backend: ${serverLabel}
-- Layout: ${layout}
-
-## Commands
-
-\`\`\`bash
-cd miniprogram && pnpm install && pnpm dev:weapp   # 前端开发
-cd server && ${startCmd}                           # 后端开发
-\`\`\`
-
-## Conventions
-
-- CSS 字号用变量 \`var(--fs-xxl)\`，禁止写死 px
-- 类名 BEM：\`.block__element--modifier\`
-- API 返回 \`{ code: 0, message, data, pagination? }\`
-- 纯展示组件用 \`memo()\` 包裹
-- PNG only，不用 SVG
-- \`<Image>\` 容器必须有显式 width/height
-
-## Project Structure
-
-\`\`\`
-├── miniprogram/     # Taro 前端
-│   ├── src/layouts/ # 布局组件
-│   ├── src/pages/   # 页面
-│   └── config/      # 构建配置
-├── server/          # ${serverLabel} 后端
-├── reusable/        # 可复用组件和工具
-├── docs/            # 项目文档
-├── CLAUDE.md        # AI 协作规范
-└── AGENT.md         # Agent 使用指南
-\`\`\`
-
-## Notes
-
-- 部署前确认用户意图，不要主动 deploy
-- 不要手动 push 到 main
-- 只跑 build 验证编译，不要起服务
-`
-}
-
-/**
- * 生成 AGENT.md
- */
-function generateAgentMd(name, config) {
-  const { server } = config
-  const serverLabel = SERVERS[server].label
-  const startCmd = server === 'python'
-    ? 'cd server && pip install -r requirements.txt && python main.py'
-    : 'cd server && go mod tidy && go run main.go'
-
-  return `# Agent 使用指南
-
-> 本文件供 AI Agent 阅读，说明如何在这个项目中工作。
-
-## 快速开始
-
-\`\`\`bash
-cd miniprogram && pnpm install && pnpm dev:weapp
-${startCmd}
-\`\`\`
-
-## 开发流程
-
-1. **理解需求** → 读 CLAUDE.md 了解规范
-2. **定位代码** → 页面在 \`src/pages/\`，布局在 \`src/layouts/\`
-3. **修改代码** → 遵循 BEM、CSS 变量、memo 等规范
-4. **验证** → 跑 \`pnpm build:weapp\` 确认编译通过
-5. **不要主动部署** → 等用户确认
-
-## 关键路径
-
-| 内容 | 路径 |
-|------|------|
-| 页面 | \`miniprogram/src/pages/\` |
-| 布局 | \`miniprogram/src/layouts/\` |
-| 样式变量 | \`miniprogram/src/styles/variables.scss\` |
-| 后端入口 | \`server/main.${server === 'python' ? 'py' : 'go'}\` |
-| 项目规范 | \`CLAUDE.md\` |
-| 设计系统 | \`docs/design-tokens.md\` |
-| API 约定 | \`docs/api-conventions.md\` |
-| 可复用组件 | \`reusable/components/\` |
-| 踩坑文档 | \`reusable/patterns/\` |
-
-## 禁忌
-
-- 不要写死 px 字号
-- 不要用 SVG 做小程序图标
-- 不要手写 \`wx.requestSubscribeMessage\`
-- 不要直接操作数据库
-- 不要主动 deploy
-- 不要 push 到 main（除非用户明确要求）
-
-## 文件变更检查清单
-
-- 改了页面 → 检查 \`app.config.ts\` 的 pages 是否需要更新
-- 改了组件 → 检查是否需要 \`memo()\`
-- 改了样式 → 检查是否用了 CSS 变量
-- 新增依赖 → 确认是小程序兼容的包
-`
-}
-
-/**
  * 主脚手架函数
  */
 export async function scaffold(projectName, config) {
@@ -177,6 +71,14 @@ export async function scaffold(projectName, config) {
   const mDir = path.join(dir, 'miniprogram')
   const layoutCfg = LAYOUTS[layout]
   const serverCfg = SERVERS[server]
+  const serverLabel = serverCfg.label
+  const serverExt = server === 'python' ? 'py' : 'go'
+  const startCmd = server === 'python'
+    ? 'pip install -r requirements.txt && python main.py'
+    : 'go mod tidy && go run main.go'
+  const startCmdFull = server === 'python'
+    ? 'cd server && pip install -r requirements.txt && python main.py'
+    : 'cd server && go mod tidy && go run main.go'
 
   // 1. 创建目录
   await fs.ensureDir(mDir)
@@ -213,16 +115,6 @@ export async function scaffold(projectName, config) {
   // 6. 复制后端模板
   await fs.copy(path.join(tDir, serverCfg.template), path.join(dir, 'server'))
 
-  // 7. 复制 reusable 和 docs
-  const repoRoot = path.join(tDir, '..', '..')
-  await fs.copy(path.join(repoRoot, 'reusable'), path.join(dir, 'reusable'))
-  await fs.copy(path.join(repoRoot, 'docs'), path.join(dir, 'docs'))
-
-  // 8. 生成 CLAUDE.md 和 AGENT.md
-  await fs.writeFile(path.join(dir, 'CLAUDE.md'), generateClaudeMd(projectName, config))
-  await fs.writeFile(path.join(dir, 'AGENT.md'), generateAgentMd(projectName, config))
-
-  // Go: 修改 go.mod 模块名
   if (server === 'go') {
     const goModPath = path.join(dir, 'server/go.mod')
     let goMod = await fs.readFile(goModPath, 'utf8')
@@ -239,6 +131,25 @@ export async function scaffold(projectName, config) {
     await fs.writeFile(envExamplePath, env)
   }
 
-  // 7. 写 README
+  // 7. 复制 reusable 和 docs
+  const repoRoot = path.join(tDir, '..', '..')
+  await fs.copy(path.join(repoRoot, 'reusable'), path.join(dir, 'reusable'))
+  await fs.copy(path.join(repoRoot, 'docs'), path.join(dir, 'docs'))
+
+  // 8. 从模板生成 CLAUDE.md 和 AGENT.md
+  const metaDir = path.join(tDir, 'meta')
+  const tplVars = {
+    PROJECT_NAME: projectName,
+    SERVER_LABEL: serverLabel,
+    SERVER_EXT: serverExt,
+    LAYOUT: layout,
+    START_CMD: startCmd,
+    START_CMD_FULL: startCmdFull,
+  }
+  const claudeContent = renderTemplate(path.join(metaDir, 'CLAUDE.md'), tplVars)
+  await fs.writeFile(path.join(dir, 'CLAUDE.md'), claudeContent)
+  await fs.writeFile(path.join(dir, 'AGENT.md'), claudeContent)
+
+  // 9. 写 README
   await fs.writeFile(path.join(dir, 'README.md'), generateReadme(projectName, layout, server))
 }
